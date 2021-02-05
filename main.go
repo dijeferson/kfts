@@ -23,7 +23,9 @@ func main() {
 	}
 
 	for _, v := range *result {
-		fmt.Println(v)
+		if v.Note != "" {
+			fmt.Printf("Book: %v - Note: %+v\n", v.Book, v.Note)
+		}
 	}
 }
 

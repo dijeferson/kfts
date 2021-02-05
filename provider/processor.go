@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -44,6 +45,7 @@ func (p Processor) Process(payload string) (*[]Clipping, error) {
 	entries := strings.Split(payload, entrySeparator)
 
 	for _, entry := range entries {
+		// Skip empty entries
 		if entry != "" {
 			clip, err := p.parseClipping(entry)
 
@@ -81,12 +83,33 @@ func (p Processor) parseClipping(clip string) (*Clipping, error) {
 	}
 
 	result.SetCreatedAt(*createdAt)
+	op, err := p.parseOperation(lines[1])
 
-	for i := 2; i < len(lines); i++ {
-		result.Note += lines[i]
+	if err != nil {
+		return nil, err
+	}
+
+	if op == note {
+		for i := 2; i < len(lines); i++ {
+			result.Note += lines[i]
+		}
 	}
 
 	return &result, nil
+}
+
+func (p Processor) parseOperation(input string) (operation, error) {
+	positionSection := strings.ToLower(strings.TrimSpace(strings.Split(input, "|")[0]))
+	switch {
+	case strings.Contains(positionSection, "destaque") || strings.Contains(positionSection, "highlight"):
+		return highlight, nil
+	case strings.Contains(positionSection, "nota") || strings.Contains(positionSection, "note"):
+		return note, nil
+	case strings.Contains(positionSection, "marcador") || strings.Contains(positionSection, "bookmark"):
+		return bookmark, nil
+	}
+
+	return unknown, fmt.Errorf("cannot define operation type for input: %v", positionSection)
 }
 
 func (p Processor) parseBookInfo(info string) (*Book, error) {
