@@ -41,3 +41,12 @@ type ErrFailedToProcessCreationDate struct {
 func (e *ErrFailedToProcessCreationDate) Error() string {
 	return fmt.Sprintf("Failed to process the clip creation date.\nData: %v.\nError: %+v", e.data, e.err)
 }
+
+// ErrInvalidOperation is thrown when there's an error determining the clipping operation
+type ErrInvalidOperation struct {
+	data string
+}
+
+func (e *ErrInvalidOperation) Error() string {
+	return fmt.Sprintf("Failed to determine the clipping operation.\nData: %v.", e.data)
+}

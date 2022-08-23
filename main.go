@@ -12,20 +12,32 @@ import (
 func main() {
 	contents, err := readFile("sample.txt")
 	if err != nil {
-		panic(err)
+		log.Fatalln("Error reading input file. ", err)
 	}
 
 	proc := provider.Processor{}
 	result, err := proc.Process(*contents)
 
 	if err != nil {
-		panic(err)
+		log.Fatalln("Error processing input file", err)
 	}
 
-	for _, v := range *result {
-		if v.Note != "" {
-			fmt.Printf("Book: %v - Note: %+v\n", v.Book, v.Note)
-		}
+	// table := termtables.CreateTable()
+	// table.SetModeTerminal()
+	// table.AddHeaders("Title", "Note")
+
+	// for _, v := range *result {
+	// 	table.AddRow(v.Book.Title, v.Note)
+	// 	table.AddSeparator()
+	// 	// if v.Note != "" {
+	// 	// fmt.Printf("Book: %v - Note: %+v\n", v.Book, v.Note)
+	// 	// }
+	// }
+
+	// fmt.Println(table.Render())
+
+	for idx, value := range *result {
+		fmt.Printf("%v > %v\n", idx, value)
 	}
 }
 

@@ -1,9 +1,9 @@
 package provider
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /**
@@ -82,14 +82,17 @@ func (p Processor) parseClipping(clip string) (*Clipping, error) {
 		return nil, &ErrFailedToProcessCreationDate{err: err, data: clip}
 	}
 
-	result.SetCreatedAt(*createdAt)
+	if createdAt != nil {
+		result.SetCreatedAt(*createdAt)
+	}
+
 	op, err := p.parseOperation(lines[1])
 
 	if err != nil {
 		return nil, err
 	}
 
-	if op == note {
+	if op == note || op == highlight {
 		for i := 2; i < len(lines); i++ {
 			result.Note += lines[i]
 		}
@@ -99,17 +102,17 @@ func (p Processor) parseClipping(clip string) (*Clipping, error) {
 }
 
 func (p Processor) parseOperation(input string) (operation, error) {
-	positionSection := strings.ToLower(strings.TrimSpace(strings.Split(input, "|")[0]))
+	opSection := strings.ToLower(strings.TrimSpace(strings.Split(input, "|")[0]))
 	switch {
-	case strings.Contains(positionSection, "destaque") || strings.Contains(positionSection, "highlight"):
+	case strings.Contains(opSection, "destaque") || strings.Contains(opSection, "highlight"):
 		return highlight, nil
-	case strings.Contains(positionSection, "nota") || strings.Contains(positionSection, "note"):
+	case strings.Contains(opSection, "nota") || strings.Contains(opSection, "note"):
 		return note, nil
-	case strings.Contains(positionSection, "marcador") || strings.Contains(positionSection, "bookmark"):
+	case strings.Contains(opSection, "marcador") || strings.Contains(opSection, "bookmark"):
 		return bookmark, nil
 	}
 
-	return unknown, fmt.Errorf("cannot define operation type for input: %v", positionSection)
+	return unknown, &ErrInvalidOperation{data: opSection}
 }
 
 func (p Processor) parseBookInfo(info string) (*Book, error) {
@@ -146,8 +149,18 @@ func (p Processor) parsePosition(input string) (*Position, error) {
 }
 
 func (p Processor) parseCreationDate(input string) (*DateTime, error) {
-	//dateSection := strings.TrimSpace(strings.Split(input, "|")[1])
+	dateSection := strings.TrimSpace(strings.Split(input, "|")[1])
 
-	var result DateTime
+	rawDate := strings.Replace(dateSection, "Added on ", "", 1)
+	rawDate = strings.Replace(rawDate, "Adicionado: ", "", 1)
+
+	dt, err := time.Parse("Monday, January _2, 2006 3:04:05 PM", rawDate)
+
+	if err != nil {
+		return nil, nil //err --> swallow error for now
+	}
+
+	result := DateTime(dt)
+
 	return &result, nil
 }
