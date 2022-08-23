@@ -1,2 +1,2 @@
 # kindle-clipping
-A Kindle Clipping file processor in Golang
+A Kindle Clipping file processor in Go
